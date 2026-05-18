@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "ControlBlock.h"
+#include "control_block.h"
 #include <stdexcept>
 
 template<typename T>
@@ -7,25 +7,32 @@ class weak_ptr;
 
 template <typename T> 
 class shared_ptr { //template class
-	ControlBlock<T>* sp;
+	control_block<T>* sp;
 
 	void deleting() { //for correct deletion objects. Used in destructor
 		if (sp) { 
 			sp->shared_counter--;
 			if (sp->shared_counter == 0) { 
+				sp->destroy();
 				if (sp->weak_counter == 0) {
 					delete sp;
+					sp = nullptr;
 				}
 			}
+			
 		}
 
+	}
+
+	void swap(shared_ptr& other) noexcept { //swap function for shared_ptr type object
+		std::swap(sp, other.sp);
 	}
 public:
 	shared_ptr() : sp(nullptr) {} //default contructor
 
-	explicit shared_ptr(T* ptr)  { //contructor by raw pointer
+	explicit shared_ptr(T* ptr) : sp(nullptr) { //contructor by raw pointer
 		if (ptr) {
-			sp = new ControlBlock<T>(ptr);
+			sp = new control_block<T>(ptr);
 		}
 	}
 
@@ -39,28 +46,22 @@ public:
 		other.sp = nullptr;
 	}
 
+	~shared_ptr() noexcept {
+		deleting();
+	}
+
 	shared_ptr& operator=(const shared_ptr& other) {  //overloaded operator assignments by shared_ptr object
 		if (this != &other) { 
-			deleting(); 
-			sp = other.sp;
-			if (sp) {
-				sp->shared_counter++;
-			}
+			shared_ptr(other).swap(*this);
 		}
 		return *this;
 	}
 
 	shared_ptr& operator=(shared_ptr&& other) noexcept { //overloaded operator assignments by move-semantics
 		if (this != &other) {
-			deleting();
-			sp = other.sp;
-			other.sp = nullptr;
+			shared_ptr(std::move(other)).swap(*this);
 		}
 		return *this;
-	}
-
-	~shared_ptr() noexcept { 
-		deleting();
 	}
 
 	T& operator*() const {  //operator dereferences
@@ -86,7 +87,7 @@ public:
 		sp = nullptr;
 		if (ptr) {
 			try {
-				sp = new ControlBlock<T>(ptr);
+				sp = new control_block<T>(ptr);
 			}
 			catch (...) {
 				delete ptr;
@@ -103,7 +104,6 @@ public:
 	int use_count() const noexcept{ // done
 		return sp ? sp->shared_counter : 0; 
 	}
-
 
 	friend class weak_ptr<T>; //see private fields
 };

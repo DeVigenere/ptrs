@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "ControlBlock.h"
+#include "control_block.h"
 #include <algorithm>
 
 template<typename T>
@@ -7,7 +7,7 @@ class shared_ptr;
 
 template<typename T>
 class weak_ptr { //template class
-	ControlBlock<T>* wp; 
+	control_block<T>* wp;
 
 	void swap(weak_ptr& other) noexcept{ //swap function for weak_ptr type object
 		std::swap(wp, other.wp);
