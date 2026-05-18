@@ -1,7 +1,7 @@
 ﻿#include <iostream>
-#include "Counter.h"
+#include "ControlBlock.h"
 #include "shared_ptr.h"
-#include "Weak_ptr.h"
+#include "weak_ptr.h"
 
 int main() {
 	shared_ptr<int> one(new int (42));
